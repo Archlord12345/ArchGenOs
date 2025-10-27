@@ -1,0 +1,55 @@
+name: Build ISO
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'archiso/**'
+      - 'configs/**'
+      - 'Makefile'
+      - '.gitlab-ci.yml'
+      - '.gitlab/**'
+  pull_request:
+    paths:
+      - 'archiso/**'
+      - 'configs/**'
+      - 'Makefile'
+      - '.gitlab-ci.yml'
+      - '.gitlab/**'
+
+jobs:
+  build-releng-iso:
+    name: Build releng ISO
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --privileged
+    steps:
+      - name: Install git
+        run: |
+          pacman -Sy --noconfirm git
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm archlinux-keyring
+          pacman -Syu --noconfirm arch-install-scripts bash dosfstools e2fsprogs erofs-utils gnupg grub jq libarchive libisoburn mtools openssl python-docutils squashfs-tools zsync
+
+      - name: Prepare directories
+        run: |
+          mkdir -p tmp output
+
+      - name: Build ISO
+        run: |
+          ./.gitlab/ci/build_archiso.sh releng iso
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: archlinux-releng-iso
+          path: output/
+          if-no-files-found: error

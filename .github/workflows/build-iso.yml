@@ -1,3 +1,64 @@
+name: Build ArchGenOS ISO
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    container:
+      image: archlinux:latest
+      options: --privileged
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restore pacman cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            /var/cache/pacman/pkg
+            /var/lib/pacman/sync
+          key: pacman-${{ runner.os }}-${{ hashFiles('**/packages.x86_64') }}
+          restore-keys: |
+            pacman-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          set -euxo pipefail
+          pacman -Syu --noconfirm --needed archlinux-keyring
+          pacman -Syu --noconfirm --needed base-devel archiso git squashfs-tools dosfstools e2fsprogs libisoburn syslinux grub efibootmgr zstd xz lzop p7zip curl
+
+      - name: Configure build directories
+        run: |
+          set -euxo pipefail
+          mkdir -p work out
+
+      - name: Build ISO (releng)
+        run: |
+          set -euxo pipefail
+          ./archiso/mkarchiso -v -w work -o out configs/releng
+
+      - name: List outputs
+        run: |
+          set -euxo pipefail
+          ls -la out || true
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ArchGenOS-iso
+          path: out/*.iso
+          if-no-files-found: error
+
 name: Build ISO
 
 on:

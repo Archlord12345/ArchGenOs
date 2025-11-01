@@ -1,5 +1,5 @@
 =======
-archiso
+ArchGenOs
 =======
 
 The archiso project features scripts and configuration templates to build installation media (*.iso* images and

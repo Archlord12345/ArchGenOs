@@ -2,7 +2,7 @@
 ArchGenOs
 =======
 
-The archiso project features scripts and configuration templates to build installation media (*.iso* images and
+The test iso project features scripts and configuration templates to build installation media (*.iso* images and
 *.tar bootstrap images) as well as netboot artifacts for BIOS and UEFI based systems.
 Currently creating the images is only supported on Arch Linux but may work on other operating systems as well.
 
